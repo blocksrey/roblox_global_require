@@ -1,8 +1,11 @@
-local modules = {}
+local once = true
+
+local fetched = {}
 local threads = {}
 
-local function dewit(module)
+local function try(module)
 	if not threads[module.Name] then
+		print("thread [create]: "..module.Name)
 		coroutine.resume(coroutine.create(function()
 			threads[module.Name] = require(module)
 		end))
@@ -10,26 +13,25 @@ local function dewit(module)
 end
 
 function _G.require(name)
-	local module = modules[name]
-	if module then
-		print("load module: "..name)
-		dewit(module)
-		return threads[name]
+	if fetched[name] then
+		print("require [twice]: "..name)
 	else
-		print("no module: "..name)
+		local module = script:FindFirstChild(name, true)
+		if module then
+			print("require [begin]: "..name)
+			try(module)
+			fetched[name] = once
+			return threads[name]
+		else
+			print("require [invalid]: "..name)
+		end
 	end
 end
 
 for _, object in next, script:GetDescendants() do
 	if object:IsA("ModuleScript") then
-		modules[object.Name] = object
+		try(object)
 	end
 end
-
-for _, module in next, modules do
-	dewit(module)
-end
-
-script:Destroy()
 
 return nil
