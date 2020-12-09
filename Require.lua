@@ -34,4 +34,7 @@ for _, object in next, script:GetDescendants() do
 	end
 end
 
+_G.require = nil
+--script:Destroy()
+
 return nil
