@@ -1,5 +1,6 @@
 local once = true
 
+local modules = {}
 local fetched = {}
 local threads = {}
 
@@ -16,7 +17,7 @@ function _G.require(name)
 	if fetched[name] then
 		print("require [twice]: "..name)
 	else
-		local module = script:FindFirstChild(name, true)
+		local module = modules[name]
 		if module then
 			print("require [begin]: "..name)
 			try(module)
@@ -30,8 +31,12 @@ end
 
 for _, object in next, script:GetDescendants() do
 	if object:IsA("ModuleScript") then
-		try(object)
+		modules[object.Name] = object
 	end
+end
+
+for _, module in next, modules do
+	try(module)
 end
 
 _G.require = nil
